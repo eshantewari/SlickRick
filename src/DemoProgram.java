@@ -1,26 +1,33 @@
+
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.BasicGame;
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
+import sprites.Laser;
+
 public class DemoProgram extends BasicGame {
 
 	public Image ship;
+	public Input input;
 	public double shipX;
 	public double shipY;
-	public Input input;
-	public int velX;
-	public int velY;
+	public int vel;
+	public float angle;
+	public double theta;
+	public ArrayList<Laser> lasers = new ArrayList<Laser>();
 
-	public static final int WIDTH = 800;
-	public static final int HEIGHT = 600;
-	public static final double SPEED = 0.25;
+	public static final int WIDTH = 1200;
+	public static final int HEIGHT = 900;
+	public static final double SPEED = 0.1;
 
 	public DemoProgram(String gamename) {
 		super(gamename);
@@ -28,57 +35,60 @@ public class DemoProgram extends BasicGame {
 		shipY = 275;
 		ship = null;
 		input = null;
-		velX = 0;
-		velY = 0;
+		vel = 0;
+		angle = 0;
 	}
 
 	@Override
 	public void init(GameContainer gc) throws SlickException {
-		ship = new Image("/rsc/spaceship.png");
+		ship = new Image("/rsc/Ship.png");
 		input = new Input(HEIGHT);
 	}
 
 	@Override
 	public void update(GameContainer gc, int i) throws SlickException {
 
-		if (input.isKeyDown(input.KEY_D))
-			velX++;
-		if (input.isKeyDown(input.KEY_A))
-			velX--;
+		for (Laser l : lasers)
+			l.update();
+
+		if (input.isKeyDown(input.KEY_D)) 
+			shipX += 3;
+		if (input.isKeyDown(input.KEY_A)) 
+			shipX -= 3;
 		if (input.isKeyDown(input.KEY_W))
-			velY--;
+			shipY -= 3;
 		if (input.isKeyDown(input.KEY_S))
-			velY++;
-		
-		shipX += velX * SPEED;
-		shipY += velY * SPEED;
+			shipY += 3;
 
-		if (shipX > WIDTH)
-			shipX = -ship.getWidth();
-		else if (shipX < -ship.getWidth())
-			shipX = WIDTH;
+		if (shipX + ship.getWidth() > WIDTH)
+			shipX = WIDTH - ship.getWidth();
+		else if (shipX < 0)
+			shipX = 0;
 
-		if (shipY > HEIGHT)
-			shipY = -ship.getHeight();
-		else if (shipY < -ship.getHeight())
-			shipY = HEIGHT;
+		if (shipY + ship.getHeight() > HEIGHT)
+			shipY = HEIGHT - ship.getHeight();
+		else if (shipY < 500)
+			shipY = 500;
 
-		float angle = (float) (Math.atan2(input.getMouseY() - shipY - ship.getHeight() / 2,
-				input.getMouseX() - shipX - ship.getWidth() / 2) * 180 / Math.PI + 45);
-		ship.setRotation(angle);
+		if (input.isMousePressed(input.MOUSE_LEFT_BUTTON))
+			lasers.add(new Laser(shipX, shipY, angle));
 
 	}
 
 	@Override
 	public void render(GameContainer gc, Graphics g) throws SlickException {
-		ship.draw((int) shipX, (int) shipY);
+		ship.draw((float) shipX, (float) shipY);
+		g.setColor(Color.red);
+		for (Laser l : lasers)
+			g.draw(l);
 	}
 
 	public static void main(String[] args) {
 		try {
 			AppGameContainer appgc;
-			appgc = new AppGameContainer(new DemoProgram("Simple Slick Game"));
+			appgc = new AppGameContainer(new DemoProgram("Battle of Hoth"));
 			appgc.setDisplayMode(WIDTH, HEIGHT, false);
+			appgc.setTargetFrameRate(60);
 			appgc.start();
 		} catch (SlickException ex) {
 			Logger.getLogger(DemoProgram.class.getName()).log(Level.SEVERE, null, ex);
