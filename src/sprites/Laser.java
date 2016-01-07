@@ -3,41 +3,29 @@ package sprites;
 import org.newdawn.slick.geom.Polygon;
 
 public class Laser extends Polygon {
-
-	public double velX;
-	public double velY;
 	public double posX;
 	public double posY;
-	public double angle;
 
 	public static final int LENGTH = 20;
 	public static final int WIDTH = 5;
-	public static final double SPEED = 1;
+	public double ySpeed;
 
-	public Laser(double x, double y, double theta) {
+	public Laser(double x, double y, int newSpeed) {
 		posX = x;
-		posY = y;
-		angle = theta;
-		velX = Math.cos(theta);
-		velY = Math.sin(theta);
-
+		posY = 0;
+		ySpeed = newSpeed;
+		
 		float a = (float) x;
 		float b = (float) y;
 		super.addPoint(a, b);
-		a += Math.cos(angle) * LENGTH;
-		b += Math.sin(angle) * LENGTH;
-		super.addPoint(a, b);
-		a += Math.cos(angle - Math.PI / 2) * WIDTH;
-		b += Math.sin(angle - Math.PI / 2) * WIDTH;
-		super.addPoint(a, b);
-		a += Math.cos(angle - Math.PI) * LENGTH;
-		b += Math.sin(angle - Math.PI) * LENGTH;
-		super.addPoint(a, b);
+		super.addPoint(a+WIDTH, b);
+		super.addPoint(a+WIDTH, b+LENGTH);
+		super.addPoint(a, b+LENGTH);
 	}
 
 	public void update() {
-		posX += velX;
-		posY += velY;
+		posY += ySpeed;
+		setY((int)posY);
 	}
 	
 	public double getPosX() {
@@ -47,5 +35,4 @@ public class Laser extends Polygon {
 	public double getPosY() {
 		return posY;
 	}
-
 }

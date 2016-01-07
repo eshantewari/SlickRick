@@ -1,5 +1,6 @@
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -12,31 +13,33 @@ import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
+import sprites.EnemyShip;
 import sprites.Laser;
+import sprites.Ship;
 
 public class Gattaca extends BasicGame {
 
 	public Image ship;
+	
 	public Input input;
-	public double shipX;
-	public double shipY;
-	public int vel;
-	public float angle;
-	public double theta;
+	
+	public Ship player;
 	public ArrayList<Laser> lasers = new ArrayList<Laser>();
+	public ArrayList<EnemyShip> enemyships = new ArrayList<EnemyShip>();
 
+	public int health;
+	public int frameCount;
+	public static final double ENEMY_SPEED = .1;
+	
 	public static final int WIDTH = 1200;
-	public static final int HEIGHT = 900;
+	public static final int HEIGHT = 700;
 	public static final double SPEED = 0.1;
 
 	public Gattaca(String gamename) {
 		super(gamename);
-		shipX = 375;
-		shipY = 275;
+		player = new Ship(375,275);
 		ship = null;
 		input = null;
-		vel = 0;
-		angle = 0;
 	}
 
 	@Override
@@ -47,46 +50,97 @@ public class Gattaca extends BasicGame {
 
 	@Override
 	public void update(GameContainer gc, int i) throws SlickException {
-
-		for (Laser l : lasers)
-			l.update();
+		frameCount++;
+		//generating Enemy Ships
+		if (frameCount%120==0){ //spawn every 60 frames (temp)
+			enemyships.add(
+					new EnemyShip((int)(Math.random()*WIDTH), 50, ENEMY_SPEED, player.getPosX(),player.getPosY())
+					);
+		}
+		
+		//update shit
+		player.update();
+		
+		for(EnemyShip e : enemyships) e.update();
+		for(Laser l : lasers) l.update();
+		
+		//Lasers
+		if (input.isKeyDown(input.KEY_SPACE)){
+			lasers.add(new Laser(player.getPosX(), player.getPosY(), -1)); //launches vertically
+		}
+		
+		Iterator<Laser> lasers_it = lasers.iterator();
+		
+		
+		//collision detection, removing extra sprites
+		while(lasers_it.hasNext()){
+			Laser laser = lasers_it.next();
+			Iterator<EnemyShip> enemyships_it = enemyships.iterator();
+			while(enemyships_it.hasNext()){
+				EnemyShip e = enemyships_it.next();
+				if(laser.intersects(e)){
+					lasers_it.remove();
+					enemyships_it.remove();;
+					break; //because laser has been destroyed
+				}
+				if(e.getPosX() > WIDTH || e.getPosY() > HEIGHT) enemyships_it.remove();
+			}
+			if(laser.getPosX() > WIDTH || laser.getPosY() > HEIGHT) lasers_it.remove();
+			if(laser.intersects(player)){
+				health--;
+				lasers_it.remove();;
+			}
+		}
 
 		if (input.isKeyDown(input.KEY_D)) 
-			shipX += 3;
+			player.setVelX(true);
 		if (input.isKeyDown(input.KEY_A)) 
-			shipX -= 3;
+			player.setVelX(false);
 		if (input.isKeyDown(input.KEY_W))
-			shipY -= 3;
+			player.setVelY(false);
 		if (input.isKeyDown(input.KEY_S))
-			shipY += 3;
+			player.setVelY(true);
 
-		if (shipX + ship.getWidth() > WIDTH)
-			shipX = WIDTH - ship.getWidth();
-		else if (shipX < 0)
-			shipX = 0;
-
-		if (shipY + ship.getHeight() > HEIGHT)
-			shipY = HEIGHT - ship.getHeight();
-		else if (shipY < 500)
-			shipY = 500;
-
-		if (input.isMousePressed(input.MOUSE_LEFT_BUTTON))
-			lasers.add(new Laser(shipX, shipY, angle));
+		if (player.getPosX() + ship.getWidth() > WIDTH){
+			player.setPosX(WIDTH - ship.getWidth());
+			player.resetVelX();
+		}
+		
+		else if (player.getPosX() < 0){
+			player.setPosX(0);
+			player.resetVelX();
+		}
+		if (player.getPosY() + ship.getHeight() > HEIGHT){
+			player.setPosY(HEIGHT - ship.getHeight());
+			player.resetVelY();
+		}
+		
+		else if (player.getPosY() < HEIGHT*.6){
+			player.setPosY(HEIGHT*.6);
+			player.resetVelY();
+		}
 
 	}
 
 	@Override
 	public void render(GameContainer gc, Graphics g) throws SlickException {
-		ship.draw((float) shipX, (float) shipY);
+		//what needs to happen: the ship is scaled to match its dimensions in the Ship sprite class
+		ship.draw((float) player.getPosX(), (float) player.getPosY());
+		
+		
 		g.setColor(Color.red);
 		for (Laser l : lasers)
 			g.draw(l);
+		
+		
+		for (EnemyShip e : enemyships)
+			ship.draw((float) e.getPosX(), (float) e.getPosY()); //change this to enemy_ship.draw
 	}
 
 	public static void main(String[] args) {
 		try {
 			AppGameContainer appgc;
-			appgc = new AppGameContainer(new DemoProgram("Battle of Hoth"));
+			appgc = new AppGameContainer(new Gattaca("Battle of Hoth"));
 			appgc.setDisplayMode(WIDTH, HEIGHT, false);
 			appgc.setTargetFrameRate(60);
 			appgc.start();
