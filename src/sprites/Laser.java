@@ -10,10 +10,10 @@ public class Laser extends Polygon {
 	public static final int WIDTH = 5;
 	public double ySpeed;
 
-	public Laser(double x, double y, int newSpeed) {
+	public Laser(double x, double y, double d) {
 		posX = x;
 		posY = 0;
-		ySpeed = newSpeed;
+		ySpeed = d;
 		
 		float a = (float) x;
 		float b = (float) y;
@@ -21,11 +21,13 @@ public class Laser extends Polygon {
 		super.addPoint(a+WIDTH, b);
 		super.addPoint(a+WIDTH, b+LENGTH);
 		super.addPoint(a, b+LENGTH);
+		super.addPoint(a, b);
+		
 	}
 
 	public void update() {
 		posY += ySpeed;
-		setY((int)posY);
+		setY((float)posY);
 	}
 	
 	public double getPosX() {
@@ -35,4 +37,5 @@ public class Laser extends Polygon {
 	public double getPosY() {
 		return posY;
 	}
+
 }

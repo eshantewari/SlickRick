@@ -3,26 +3,29 @@ package sprites;
 import org.newdawn.slick.geom.Polygon;
 import org.newdawn.slick.geom.Shape;
 
+import game.Gattaca;
+
 public class EnemyShip extends Polygon{
 
 	public double posX;
 	public double posY;
 	public double speed;
-
-	//will be the point to which the ship is headed
-	public double finalPosX; 
-	public double finalPosY;
 	
 	private boolean onFinalStretch;
 	private double finalTheta;
 
-	public static final int LENGTH = 5;
-	public static final int WIDTH = 5;
+	//will be the point to which the ship is headed
+	public double finalPosX; 
+	public double finalPosY;
+
+	public static final int HEIGHT = 90;
+	public static final int WIDTH = 70;
 
 	public EnemyShip(double x, double y, double nSpeed, double finalX, double finalY) {
 		posX = x;
 		posY = y;
 		speed = nSpeed;
+		
 		onFinalStretch = false;
 		finalTheta = 0;
 
@@ -40,7 +43,8 @@ public class EnemyShip extends Polygon{
 		super.addPoint(59, 20);
 		super.addPoint(48, 20);
 		super.addPoint(48, 4);
-		super.addPoint(21,20);
+		super.addPoint(21,4);
+		super.addPoint(21,20);		
 	}
 
 	public void update() {
@@ -69,7 +73,8 @@ public class EnemyShip extends Polygon{
 			posY += speed*Math.sin(finalTheta);
 			
 		}
-
+		setX((float)posX);
+		setY((float)posY);
 	}
 
 	public double getPosX() {
@@ -83,6 +88,10 @@ public class EnemyShip extends Polygon{
 	public void updateFinalPos(double newX, double newY){
 		finalPosX = newX;
 		finalPosY = newY;
+	}
+	
+	public Laser shootLaser() {
+		return new Laser(this.getPosX()+WIDTH/2, this.getPosY()+HEIGHT, Gattaca.LASER_SPEED*-1);
 	}
 
 
