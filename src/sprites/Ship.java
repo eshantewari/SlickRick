@@ -18,6 +18,13 @@ public class Ship extends Polygon{
 		posY = y;
 		velX = 0;
 		velY = 0;
+		super.addPoint(33, 7);
+		super.addPoint(6, 61);
+		super.addPoint(6, 91);
+		super.addPoint(74, 91);
+		super.addPoint(74, 61);
+		super.addPoint(46, 7);
+		super.addPoint(33, 7);
 	}
 
 	public void update() {
@@ -33,21 +40,12 @@ public class Ship extends Polygon{
 		return posY;
 	}
 	
-	public void setVelX(boolean incOrDec){
-		if(incOrDec) velX += SPEED;
-		else velX -= SPEED;
-	}
 	
 	public void resetVelX(){
 		velX = 0;
 	}
 	public void resetVelY(){
 		velY = 0;
-	}
-	
-	public void setVelY(boolean incOrDec){
-		if(incOrDec) velY += SPEED;
-		else velY -= SPEED;
 	}
 	
 	public void setPosX(double posX) {
