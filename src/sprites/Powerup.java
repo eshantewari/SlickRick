@@ -7,31 +7,51 @@ public class Powerup extends Polygon{
 	public boolean rapidFire; //1
 	public boolean health; //2
 	public boolean invincible; //3
-	
+
 	public boolean canDestruct;
+
+
+
+
 
 	public double posX;
 	public double posY;
 
 
 	public double theta;
-	
+
 	public boolean invisible; //powerup sprite is invisible
 
 	public int startFrame;
-	public static final int frameLength = 1000;
+	public static final int frameLength = 300;
 
 	public static final int SPEED = 5;
 
 	public Powerup(int num, double posX, double posY, double finalX, double finalY){
+		super.addPoint(0, 126);
+		super.addPoint(36, 65);
+		super.addPoint(22, 32);
+		super.addPoint(23, 24);
+		super.addPoint(42, 0);
+		super.addPoint(71, 23);
+		super.addPoint(69, 64);
+		super.addPoint(94,  74);
+		super.addPoint(100, 86);
+		super.addPoint(100, 126);
+		super.addPoint(0, 126);
+
 		rapidFire = false;
 		health = false;
 		invincible = false;
+
+
 		invisible = false;
 		canDestruct = false;
 		this.startFrame = 0;
 		this.posX = posX;
 		this.posY = posY;
+		setX((float) posX);
+		setY((float) posY);
 
 		if(num == 1) rapidFire = true;
 		if(num == 2) health = true;
@@ -49,9 +69,9 @@ public class Powerup extends Polygon{
 			if(deltaX > 0) theta = Math.atan(deltaY/deltaX);
 			else if(deltaX < 0) theta = Math.atan(deltaY/deltaX) + Math.PI;
 		}
-		
+
 	}
-	
+
 	public void setInvisible(boolean b) {
 		invisible = true;
 	}
@@ -59,13 +79,17 @@ public class Powerup extends Polygon{
 	public void update(){
 		posX += SPEED*Math.cos(theta);
 		posY += SPEED*Math.sin(theta);
+		setX((float) posX);
+		setY((float) posY);
 	}
 
 	public boolean destruct(int frame) {
-		if(frame-startFrame >= frameLength && canDestruct){
-			return true;
+		if(canDestruct){ 
+			if(frame-startFrame >= frameLength){
+				return true;
+			}
 		}
-		else return false;
+		return false;
 	}
 
 	public void setStartFrame(int frame){
@@ -96,18 +120,19 @@ public class Powerup extends Polygon{
 	public void setInvincible(boolean invincible) {
 		this.invincible = invincible;
 	}
-	
+
 	public boolean isInvisible(){
 		return invisible;
 	}
 
-	
+
 	public double getPosX() {
 		return posX;
 	}
 
 	public void setPosX(double posX) {
 		this.posX = posX;
+		setX((float) posX);
 	}
 
 	public double getPosY() {
@@ -116,9 +141,17 @@ public class Powerup extends Polygon{
 
 	public void setPosY(double posY) {
 		this.posY = posY;
+		setY((float) posY);
 	}
 
+	public void setCanDestruct(int frame) {
+		this.canDestruct = true;
+		startFrame = frame;
+	}
 
+	public boolean canDestruct(){
+		return canDestruct;
+	}
 
 
 

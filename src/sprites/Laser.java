@@ -27,7 +27,7 @@ public class Laser extends Polygon {
 
 	public void update() {
 		posY += ySpeed;
-		setY((float)posY);
+		setY((int)posY);
 	}
 	
 	public double getPosX() {

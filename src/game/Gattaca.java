@@ -1,5 +1,4 @@
 package game;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -13,130 +12,145 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.geom.Rectangle;
 
 import sprites.EnemyShip;
 import sprites.EnemyShip2;
-import sprites.Explosion;
 import sprites.Laser;
-import sprites.Powerup;
 import sprites.Ship;
+import sprites.Powerup;
+
 
 public class Gattaca extends BasicGame {
 
 	public Image ship;
-	public Image enemy;
+	public Image shipRed;
+	public Image enemyShip;
+	public Image enemyShip2;
 	public Image explosion;
 	public Image powerup;
 
 	public Input input;
-
+	
 	public Ship player;
 	public ArrayList<Laser> lasers = new ArrayList<Laser>();
+	public ArrayList<Laser> enemyLasers = new ArrayList<Laser>();
 	public ArrayList<EnemyShip> enemyships = new ArrayList<EnemyShip>();
 	public ArrayList<EnemyShip2> enemyships2 = new ArrayList<EnemyShip2>();
-	public ArrayList<Explosion> explosions = new ArrayList<Explosion>();
 	public ArrayList<Powerup> powerups = new ArrayList<Powerup>();
-	public ArrayList<Laser> enemyLasers = new ArrayList<Laser>();
-
-	public int health;
-	public int frameCount;
-	public int level;
 	
 	//POWERUPS
 	public boolean isInvincible = false;
 	public boolean rapidFire = false;
-	public static final int HEALTH_UP = 10;
+	public static final int HEALTH_UP = 30;
+	public static final int NORMAL_COOLDOWN = 20;
+	public static final int RAPID_COOLDOWN = 5;
 
-	//SPEEDS
+	public float health = 100;
+	public int score = 0;
+	public int frameCount;
+	
 	public static final double ENEMY_SPEED = 4;
-	public static final double PLAYER_SPEED = 5;
-	public static final double LASER_SPEED =-12;
+	public static final double LASER_SPEED = -12;
+	public static final double PLAYER_SPEED = 6;
 
+	
 	public static final int WIDTH = 1200;
 	public static final int HEIGHT = 700;
-
-	private int laserCoolCap = 10;
-	private int laserCool = 0;
-	
-	public int spawnRate = 120;
+	//public static final double SPEED = 0.1;
 
 
 	public Gattaca(String gamename) {
 		super(gamename);
-		player = new Ship(375,275);
+		player = new Ship(550,500);
 		ship = null;
 		input = null;
 	}
 
 	@Override
 	public void init(GameContainer gc) throws SlickException {
-		ship = new Image("/rsc/ship.png");
-		enemy = new Image("/rsc/enemy.png");
-		explosion = new Image("/rsc/explosion.png");
-		powerup = new Image("rsc/kanye.png");
+		ship = new Image("/rsc/Ship.png");
+		shipRed = new Image("/rsc/ShipRed.png");
+		enemyShip = new Image("/rsc/EnemyShip.png");
+		enemyShip2 = new Image("/rsc/EnemyShip2.png");
+		explosion = new Image("/rsc/explosionBig.png");
+		powerup = new Image("/rsc/powerup.png");
 		input = new Input(HEIGHT);
 	}
 
+	private int laserCoolCap = 20;
+	private int laserCool = 0;
+	private int invincibleCoolCap = 20;
+	private int invincibleCool = 20;
+	private float enemyShipSpawn=120;
+	private float enemyShipSpawnCool=0;
+	private float enemyShipSpawn2=120;
+	private float enemyShipSpawnCool2=0;
 	@Override
 	public void update(GameContainer gc, int i) throws SlickException {
 		frameCount++;
+		invincibleCool++;
+		enemyShipSpawnCool++;
+		enemyShipSpawnCool2++;
+		
+		if(rapidFire)
+			laserCoolCap = RAPID_COOLDOWN;
+		else
+			laserCoolCap = NORMAL_COOLDOWN;
+		
+		int scoreMod = score/1000;
+		if (scoreMod>60) scoreMod=60;
 		//generating Enemy Ships
-		if (frameCount%spawnRate==0){
+		if (enemyShipSpawnCool>=enemyShipSpawn){ 
 			enemyships.add(
-					new EnemyShip((int)(Math.random()*WIDTH), 50, ENEMY_SPEED, player.getPosX(),player.getPosY())
+					new EnemyShip((int)(Math.random()*(WIDTH-EnemyShip.WIDTH)), -EnemyShip.HEIGHT, ENEMY_SPEED, player.getX(),player.getY())
 					);
+			enemyShipSpawnCool=0;
+			enemyShipSpawn = (float) (Math.random()*60+90)-scoreMod;
+		}
+		if (enemyShipSpawnCool2>=enemyShipSpawn2){ 
 			enemyships2.add(
-					new EnemyShip2((int)(Math.random()*WIDTH), -50, ENEMY_SPEED/2, Math.random()*200+100)
-					);
+					new EnemyShip2((int)(Math.random()*(WIDTH-EnemyShip2.WIDTH)), -EnemyShip2.HEIGHT, ENEMY_SPEED/2, Math.random()*200+100)
+					);		
+			enemyShipSpawnCool2=0;
+			enemyShipSpawn2 = (float) (Math.random()*60+90)-scoreMod;
 		}
 		
-		if(frameCount % 1200 == 0 && spawnRate >= 30){
-			spawnRate -= 20;
-		}
-
-		//generating powerups
-		if(Math.random() < .001 && frameCount > 1){
-			int powerup = (int)(Math.random()*3)+1;
-			double x = Math.random()*(WIDTH);
-			double y = Math.random()*HEIGHT/3;
-			powerups.add(new Powerup(powerup, x, y, player.getPosX(), player.getPosY()));
-		}
-		
-
 		//update stuff
-		player.update();
-
 		for(EnemyShip e : enemyships) e.update();
 		for(EnemyShip2 e : enemyships2) e.update();
 		for(Laser l : lasers) l.update();
 		for(Laser l : enemyLasers) l.update();
 		for(Powerup p: powerups) p.update();
-
-		Iterator<Explosion> explosions_it = explosions.iterator();
-		while(explosions_it.hasNext()){
-			if(explosions_it.next().destruct(frameCount))
-				explosions_it.remove();
+		
+		//generating powerups
+		if(frameCount > 1000 && Math.random() < .001){
+			int powerup = (int)(Math.random()*3)+1;
+			double x = Math.random()*(WIDTH);
+			double y = Math.random()*HEIGHT/3;
+			powerups.add(new Powerup(powerup, x, y, player.getX(), player.getY()));
 		}
-
+		
+		//powerups
 		Iterator<Powerup> powerups_it = powerups.iterator();
 		while(powerups_it.hasNext()){
 			Powerup curr_powerup = powerups_it.next();
 			if(curr_powerup.destruct(frameCount)){
 				if (curr_powerup.isInvincible()){
 					isInvincible = false;
+					//System.out.println("Not Invincible");
 				}
 				else if (curr_powerup.isRapidFire()){
 					rapidFire = false;
+					//System.out.println("Not Rapid Fire");
 				}
 				powerups_it.remove();
 			}
 		}
-
-
+				
 		//Lasers
 		if (input.isKeyDown(Input.KEY_SPACE) && laserCool > laserCoolCap){
-			lasers.add(new Laser(player.getPosX()+ship.getWidth()/2, player.getPosY(), LASER_SPEED)); //launches vertically
-			System.out.println();
+			lasers.add(new Laser(player.getX()+ship.getWidth()/2, player.getY(), LASER_SPEED)); //launches vertically
 			laserCool = 0;
 		}
 		laserCool++;
@@ -159,57 +173,60 @@ public class Gattaca extends BasicGame {
 				enemyLasers.add(curEnemy2.shootLaser());
 			}
 		}
+		
 
-
+		
 		//collision detection, removing extra sprites
 		Iterator<Laser> lasers_it = lasers.iterator();
 		while(lasers_it.hasNext()){
+			boolean lasGone = false; //if true, laser removed. 
 			Laser laser = lasers_it.next();
 			Iterator<EnemyShip> enemyships_it = enemyships.iterator();
 			while(enemyships_it.hasNext()){
 				EnemyShip e = enemyships_it.next();
 				if(laser.intersects(e)){
-					Explosion curr_explosion = new Explosion(e.getPosX()-explosion.getWidth()/2, e.getPosY(), frameCount);
-					explosions.add(curr_explosion);
-					lasers_it.remove();
+					lasGone = true;
 					enemyships_it.remove();
+					score += 500;
 					break; //because laser has been destroyed
 				}
-				if(e.getPosX() > WIDTH || e.getPosY() > HEIGHT) enemyships_it.remove();
 			}
 			Iterator<EnemyShip2> enemyships_it2 = enemyships2.iterator();
 			while(enemyships_it2.hasNext()){
 				EnemyShip2 e = enemyships_it2.next();
 				if(laser.intersects(e)){
-					Explosion curr_explosion = new Explosion(e.getPosX()-explosion.getWidth()/2, e.getPosY(), frameCount);
-					explosions.add(curr_explosion);
-					lasers_it.remove();
+					lasGone = true;
 					enemyships_it2.remove();
+					score += 300;
 					break;
 				}
 			}
-			if(laser.getPosX() > WIDTH || laser.getPosY() > HEIGHT) lasers_it.remove();
+			if(lasGone || laser.getPosX() > WIDTH || laser.getPosY() > HEIGHT) lasers_it.remove();
 		}
-
+		
 		Iterator<Laser> enemyLasersIt = enemyLasers.iterator();
 		while(enemyLasersIt.hasNext()){
 			Laser laser = enemyLasersIt.next();
 			if (laser.intersects(player)){
-				health--;
+				if (!isInvincible){
+					health-=20;
+					hBar = new Rectangle(1188, 698-health, 10, health);
+
+				}
 				enemyLasersIt.remove();
 			}
 			if(laser.getPosX() > WIDTH || laser.getPosY() > HEIGHT) enemyLasersIt.remove();
 		}
-		
-		//kamikaze detection
-		Iterator<EnemyShip> enemyships_it = enemyships.iterator();
-		while(enemyships_it.hasNext()){
-			EnemyShip e = enemyships_it.next();
-			if(e.intersects(player)){
-				Explosion curr_explosion = new Explosion(e.getPosX()-explosion.getWidth()/2, e.getPosY(), frameCount);
-				explosions.add(curr_explosion);
-				enemyships_it.remove();
-				health--;
+		Iterator<EnemyShip> enemyShipsIt = enemyships.iterator();
+		while (enemyShipsIt.hasNext()) {
+			EnemyShip curShip = enemyShipsIt.next();
+			if (curShip.intersects(player)){
+				if (!isInvincible){
+					health-=50;
+					hBar = new Rectangle(1188, 698-health, 10, health);
+					invincibleCool = 0;
+				}
+				enemyShipsIt.remove();
 			}
 		}
 		
@@ -217,91 +234,121 @@ public class Gattaca extends BasicGame {
 		powerups_it = powerups.iterator();
 		while(powerups_it.hasNext()){
 			Powerup curr_powerup = powerups_it.next();
+			boolean flag = false;
 			if(curr_powerup.intersects(player)){
 				//add powerups
+				curr_powerup.setInvisible(true);
 				if(curr_powerup.isHealth()){
 					health += HEALTH_UP;
+					if(health > 100) health = 100;
+					powerups_it.remove();
+					flag = true;
+					hBar = new Rectangle(1188, 698-health, 10, health);
 				}
 				else if (curr_powerup.isInvincible()){
 					isInvincible = true;
-					curr_powerup.setStartFrame(frameCount);
+					curr_powerup.setCanDestruct(frameCount);
+					//System.out.println("Invincible");
 				}
 				else if (curr_powerup.isRapidFire()){
 					rapidFire = true;
-					curr_powerup.setStartFrame(frameCount);
+					curr_powerup.setCanDestruct(frameCount);
+					//System.out.println("Rapid Fire");
 				}
-				curr_powerup.setInvisible(true);
+
 			}
-			if(curr_powerup.getPosX() > WIDTH || curr_powerup.getPosY() > HEIGHT) powerups_it.remove();
+			if(!flag && !curr_powerup.canDestruct() && (curr_powerup.getPosX() > WIDTH || curr_powerup.getPosY() > HEIGHT)) powerups_it.remove();
 			
 		}
+		
+		if (input.isKeyDown(Input.KEY_D) || input.isKeyDown(Input.KEY_RIGHT)) 
+			player.setX((float) (player.getX()+PLAYER_SPEED));
+		if (input.isKeyDown(Input.KEY_A) || input.isKeyDown(Input.KEY_LEFT)) 
+			player.setX((float) (player.getX()-PLAYER_SPEED));
+		if (input.isKeyDown(Input.KEY_W) || input.isKeyDown(Input.KEY_UP))
+			player.setY((float) (player.getY()-PLAYER_SPEED));
+		if (input.isKeyDown(Input.KEY_S) || input.isKeyDown(Input.KEY_DOWN))
+			player.setY((float) (player.getY()+PLAYER_SPEED));
 
-
-		if (input.isKeyDown(input.KEY_D)) 
-			player.setPosX(player.getPosX()+PLAYER_SPEED);
-		if (input.isKeyDown(input.KEY_A)) 
-			player.setPosX(player.getPosX()-PLAYER_SPEED);
-		if (input.isKeyDown(input.KEY_W))
-			player.setPosY(player.getPosY()-PLAYER_SPEED);
-		if (input.isKeyDown(input.KEY_S))
-			player.setPosY(player.getPosY()+PLAYER_SPEED);
-
-
-		if (player.getPosX() + ship.getWidth() > WIDTH){
-			player.setPosX(WIDTH - ship.getWidth());
-			player.resetVelX();
+		if (player.getX() + ship.getWidth() > WIDTH){
+			player.setX(WIDTH - ship.getWidth());
 		}
-
-		else if (player.getPosX() < 0){
-			player.setPosX(0);
-			player.resetVelX();
+		else if (player.getX() < 0){
+			player.setX(0);
 		}
-		if (player.getPosY() + ship.getHeight() > HEIGHT){
-			player.setPosY(HEIGHT - ship.getHeight());
-			player.resetVelY();
+		
+		if (player.getY() + ship.getHeight() > HEIGHT){
+			player.setY(HEIGHT - ship.getHeight());
 		}
-
-		else if (player.getPosY() < HEIGHT*.6){
-			player.setPosY(HEIGHT*.6);
-			player.resetVelY();
+		else if (player.getY() < HEIGHT*.6){
+			player.setY((float) (HEIGHT*.6));
 		}
-
+		
+		score++;
 	}
 
+	Rectangle hBarBG = new Rectangle(1186, 596, 14, 104);
+	Rectangle hBar = new Rectangle(1188, 598, 10, 100);
+	private float shift = 0;
 	@Override
 	public void render(GameContainer gc, Graphics g) throws SlickException {
-		ship.draw((float) player.getPosX(), (float) player.getPosY());
-
-
-		g.setColor(Color.red);
-		for (Laser l : lasers)
-			g.fill(l);
+		Image spaceTile = new Image("/rsc/SpaceTile.png");
+		for (int i=0; i<WIDTH; i+= spaceTile.getWidth()){
+			for (int j=-spaceTile.getHeight(); j<HEIGHT; j+= spaceTile.getHeight()){
+				spaceTile.draw(i, j+shift);
+			}
+		}
+		shift+=.4;
+		if (shift >= spaceTile.getHeight()) shift = 0;
 		
+		g.setColor(Color.gray);
+		g.fill(hBarBG);
+		
+		g.setColor(Color.red);
+		g.fill(hBar);
+		
+		if (invincibleCool>invincibleCoolCap) ship.draw((float) player.getX(), (float) player.getY());
+		else shipRed.draw((float) player.getX(), (float) player.getY());
+		//g.fill(player);
+		
+		g.setColor(Color.red);
+		for (Laser l : lasers){
+			g.fill(l);
+		}
 		g.setColor(Color.green);
 		for (Laser l : enemyLasers){
 			g.fill(l);
 		}
-
-		for (EnemyShip e : enemyships)
-			enemy.draw((float) e.getPosX(), (float) e.getPosY());
+		
+		for (EnemyShip e : enemyships) {
+			enemyShip.draw((float) e.getPosX(), (float) e.getPosY());
+			//g.fill(e);
+		}
+		
 		for (EnemyShip2 e : enemyships2) 
-			enemy.draw((float) e.getPosX(), (float) e.getPosY()); 
-
-		for (Explosion e: explosions)
-			explosion.draw((float) e.getPosX(), (float) e.getPosY());
+			enemyShip2.draw((float) e.getPosX(), (float) e.getPosY()); 
 		
 		for(Powerup p: powerups){
 			if(!p.isInvisible()){
 				powerup.draw((float) p.getPosX(), (float)(p.getPosY()));
-
 			}
+		}
+		
+		
+		g.setColor(Color.white);
+		g.drawString("Score: "+score, 1060, 10);
+		if(isInvincible){
+			g.drawString("Invincibility", 1060, 50);
+		}
+		if(rapidFire){
+			g.drawString("Rapid Fire", 1060, 100);
 		}
 	}
 
 	public static void main(String[] args) {
 		try {
 			AppGameContainer appgc;
-			appgc = new AppGameContainer(new Gattaca("Gattaca"));
+			appgc = new AppGameContainer(new Gattaca("Battle of Hoth"));
 			appgc.setDisplayMode(WIDTH, HEIGHT, false);
 			appgc.setTargetFrameRate(60);
 			appgc.start();
