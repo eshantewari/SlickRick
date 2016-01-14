@@ -95,7 +95,7 @@ public class Gattaca extends BasicGame {
 		}
 
 		//generating powerups
-		if(Math.random() < .001 && frameCount > 1000){
+		if(Math.random() < .001 && frameCount > 1){
 			int powerup = (int)(Math.random()*3)+1;
 			double x = Math.random()*(WIDTH);
 			double y = Math.random()*HEIGHT/3;
