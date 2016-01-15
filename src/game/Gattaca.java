@@ -1,4 +1,5 @@
 package game;
+import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -12,6 +13,7 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.TrueTypeFont;
 import org.newdawn.slick.geom.Rectangle;
 
 import sprites.EnemyShip;
@@ -23,6 +25,10 @@ import sprites.Powerup;
 
 public class Gattaca extends BasicGame {
 
+	public boolean restart = true;
+	public boolean endGame = false;
+	public int finalScore = 0;
+	
 	public Image ship;
 	public Image shipRed;
 	public Image enemyShip;
@@ -88,10 +94,34 @@ public class Gattaca extends BasicGame {
 	private float enemyShipSpawnCool2=0;
 	@Override
 	public void update(GameContainer gc, int i) throws SlickException {
+		if(restart){
+			lasers = new ArrayList<Laser>();
+			enemyLasers = new ArrayList<Laser>();
+			enemyships = new ArrayList<EnemyShip>();
+			enemyships2 = new ArrayList<EnemyShip2>();
+			powerups = new ArrayList<Powerup>();
+			laserCoolCap = 20;
+			invincibleCool = 20;
+			frameCount = 0;
+			health = 100;
+			player = new Ship(550,500);
+			score = 0;
+			restart = false;
+			hBar = new Rectangle(1188, 698-health, 10, health);
+		}
+		if(health <= 0){ 
+			endGame = true;
+			finalScore = score;
+			if(input.isKeyDown(Input.KEY_R)){
+				restart = true;
+				endGame = false;
+			}
+			return;
+		}
 		frameCount++;
-		invincibleCool++;
 		enemyShipSpawnCool++;
 		enemyShipSpawnCool2++;
+		invincibleCool++;
 		
 		if(rapidFire)
 			laserCoolCap = RAPID_COOLDOWN;
@@ -208,10 +238,11 @@ public class Gattaca extends BasicGame {
 		while(enemyLasersIt.hasNext()){
 			Laser laser = enemyLasersIt.next();
 			if (laser.intersects(player)){
-				if (!isInvincible){
+				if (!isInvincible && invincibleCool>invincibleCoolCap){
 					health-=20;
 					hBar = new Rectangle(1188, 698-health, 10, health);
-
+					invincibleCool = 0;
+					 
 				}
 				enemyLasersIt.remove();
 			}
@@ -221,10 +252,11 @@ public class Gattaca extends BasicGame {
 		while (enemyShipsIt.hasNext()) {
 			EnemyShip curShip = enemyShipsIt.next();
 			if (curShip.intersects(player)){
-				if (!isInvincible){
+				if (!isInvincible && invincibleCool>invincibleCoolCap){
 					health-=50;
 					hBar = new Rectangle(1188, 698-health, 10, health);
 					invincibleCool = 0;
+					 
 				}
 				enemyShipsIt.remove();
 			}
@@ -307,7 +339,7 @@ public class Gattaca extends BasicGame {
 		g.setColor(Color.red);
 		g.fill(hBar);
 		
-		if (invincibleCool>invincibleCoolCap) ship.draw((float) player.getX(), (float) player.getY());
+		if (isInvincible || invincibleCool>invincibleCoolCap) ship.draw((float) player.getX(), (float) player.getY());
 		else shipRed.draw((float) player.getX(), (float) player.getY());
 		//g.fill(player);
 		
@@ -342,6 +374,16 @@ public class Gattaca extends BasicGame {
 		}
 		if(rapidFire){
 			g.drawString("Rapid Fire", 1060, 100);
+		}
+		
+		
+		if(endGame){
+			Font font = new Font("Times New Roman", Font.BOLD, 32);
+			TrueTypeFont ttf = new TrueTypeFont(font, true);
+			
+			ttf.drawString(WIDTH/2-100, HEIGHT/2-50, "Game Over Son", Color.white);
+			ttf.drawString(WIDTH/2-100, HEIGHT/2, "Score: "+finalScore, Color.white);
+			ttf.drawString(WIDTH/2-100, HEIGHT/2+50, "Press R to Restart", Color.white);
 		}
 	}
 
