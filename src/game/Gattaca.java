@@ -18,7 +18,7 @@ import org.newdawn.slick.geom.Rectangle;
 
 import sprites.EnemyShip;
 import sprites.EnemyShip2;
-import sprites.Laser;
+import sprites.Laser;	
 import sprites.Ship;
 import sprites.Powerup;
 
@@ -65,6 +65,7 @@ public class Gattaca extends BasicGame {
 	public static final int HEIGHT = 700;
 	//public static final double SPEED = 0.1;
 
+	
 
 	public Gattaca(String gamename) {
 		super(gamename);
@@ -79,7 +80,6 @@ public class Gattaca extends BasicGame {
 		shipRed = new Image("/rsc/ShipRed.png");
 		enemyShip = new Image("/rsc/EnemyShip.png");
 		enemyShip2 = new Image("/rsc/EnemyShip2.png");
-		explosion = new Image("/rsc/explosionBig.png");
 		powerup = new Image("/rsc/powerup.png");
 		input = new Input(HEIGHT);
 	}
@@ -108,6 +108,10 @@ public class Gattaca extends BasicGame {
 			score = 0;
 			restart = false;
 			hBar = new Rectangle(1188, 698-health, 10, health);
+			enemyShipSpawn = 120;
+			enemyShipSpawn2 = 120;
+			isInvincible=false;
+			rapidFire=false;
 		}
 		if(health <= 0){ 
 			endGame = true;
@@ -122,6 +126,7 @@ public class Gattaca extends BasicGame {
 		enemyShipSpawnCool++;
 		enemyShipSpawnCool2++;
 		invincibleCool++;
+		
 		
 		if(rapidFire)
 			laserCoolCap = RAPID_COOLDOWN;
@@ -155,10 +160,10 @@ public class Gattaca extends BasicGame {
 		
 		//generating powerups
 		if(frameCount > 1000 && Math.random() < .001){
-			int powerup = (int)(Math.random()*3)+1;
-			double x = Math.random()*(WIDTH);
-			double y = Math.random()*HEIGHT/3;
-			powerups.add(new Powerup(powerup, x, y, player.getX(), player.getY()));
+			int whichPow = (int)(Math.random()*3)+1;
+			double x = Math.random()*(WIDTH-powerup.getWidth());
+			double finalX = Math.random()*(WIDTH-powerup.getWidth());
+			powerups.add(new Powerup(whichPow, x, -1*powerup.getHeight(), finalX, HEIGHT+powerup.getHeight()));
 		}
 		
 		//powerups
@@ -376,14 +381,19 @@ public class Gattaca extends BasicGame {
 			g.drawString("Rapid Fire", 1060, 100);
 		}
 		
-		
 		if(endGame){
-			Font font = new Font("Times New Roman", Font.BOLD, 32);
+			Font font = new Font("Lucida Console", Font.BOLD, 60);
 			TrueTypeFont ttf = new TrueTypeFont(font, true);
+			int width1 = ttf.getWidth("GAME OVER");
+			ttf.drawString(WIDTH/2-width1/2, HEIGHT/2-90, "GAME OVER", Color.white);
 			
-			ttf.drawString(WIDTH/2-100, HEIGHT/2-50, "Game Over Son", Color.white);
-			ttf.drawString(WIDTH/2-100, HEIGHT/2, "Score: "+finalScore, Color.white);
-			ttf.drawString(WIDTH/2-100, HEIGHT/2+50, "Press R to Restart", Color.white);
+			font = new Font("Lucida Console", Font.BOLD, 32);
+			ttf = new TrueTypeFont(font, true);
+			int width2 = ttf.getWidth("Score: "+finalScore);
+			int width3 = ttf.getWidth("Press R to Restart");
+
+			ttf.drawString(WIDTH/2-width2/2, HEIGHT/2, "Score: "+finalScore, Color.white);
+			ttf.drawString(WIDTH/2-width3/2, HEIGHT/2+50, "Press R to Restart", Color.white);
 		}
 	}
 
