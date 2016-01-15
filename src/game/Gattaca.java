@@ -390,7 +390,7 @@ public class Gattaca extends BasicGame {
 	public static void main(String[] args) {
 		try {
 			AppGameContainer appgc;
-			appgc = new AppGameContainer(new Gattaca("Battle of Hoth"));
+			appgc = new AppGameContainer(new Gattaca("Gattaca"));
 			appgc.setDisplayMode(WIDTH, HEIGHT, false);
 			appgc.setTargetFrameRate(60);
 			appgc.start();

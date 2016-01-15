@@ -28,18 +28,11 @@ public class Powerup extends Polygon{
 	public static final int SPEED = 5;
 
 	public Powerup(int num, double posX, double posY, double finalX, double finalY){
-		super.addPoint(0, 126);
-		super.addPoint(36, 65);
-		super.addPoint(22, 32);
-		super.addPoint(23, 24);
-		super.addPoint(42, 0);
-		super.addPoint(71, 23);
-		super.addPoint(69, 64);
-		super.addPoint(94,  74);
-		super.addPoint(100, 86);
-		super.addPoint(100, 126);
-		super.addPoint(0, 126);
-
+		super.addPoint(0, 0);
+		super.addPoint(0, 50);
+		super.addPoint(50, 50);
+		super.addPoint(50, 0);
+		
 		rapidFire = false;
 		health = false;
 		invincible = false;
